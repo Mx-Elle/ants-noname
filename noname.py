@@ -8,8 +8,6 @@ import numpy.typing as npt
 from board import Entity, neighbors
 
 AntMove = tuple[tuple[int, int], tuple[int, int]]
-
-"""1解析视野 2推对面基地位置 3初始化claimed，避免碰撞 4目标池=吃的+对面家，a*距离最短的两个 5啥都没找出来的话只能站着不动受着666"""
 def valid_nbr(row: int, col: int, walls: npt.NDArray[np.int_]) -> list[tuple[int, int]]:
     all = neighbors((row, col), walls.shape)
     validl = []
@@ -96,7 +94,7 @@ class RandomBot:
             #list.sort(key=lambda single target:distance from ant to target)
             
             #limit to 2 targets to prevent timeout
-            for target in poss_tar[:2]:
+            for target in poss_tar[:1]:
                 path = astar(ant, target, self.shape, self.walls)
                 if path and len(path) > 0:
                     bestp = path
