@@ -73,11 +73,40 @@ class RandomBot:
         fants = {coord for coord, kind in vision if kind == Entity.FRIENDLY_ANT}#friendly ants
         fhills = {coord for coord, kind in vision if kind == Entity.FRIENDLY_HILL}#friendly hills
         food_seen = {coord for coord, kind in vision if kind == Entity.FOOD}
+        eants = {coord for coord, kind in vision if kind == Entity.ENEMY_ANT}
         
         #early in game, calculate coordinates of enemy base through symetry
         if not self.infer_enemy_hill and fhills:
             for r, c in fhills:
                 self.infer_enemy_hill.add((self.shape[0] - r - 1, self.shape[1] - c - 1))
+
+        #update infered hills
+        for ant_loc in fants:
+            if ant_loc in self.infer_enemy_hill:
+                self.infer_enemy_hill.remove(ant_loc)
+        
+        #rush if opponent has one hill left and we have advantage on amount
+        if len(self.infer_enemy_hill) == 1 and len(fants) > len(eants) * 2:
+            target_hill = list(self.infer_enemy_hill)[0]
+            claimed = set(fhills)
+            for ant in fants:
+                path = astar(ant, target_hill, self.shape, self.walls)
+                if path and len(path) > 0:
+                    next_pos = path[0]
+                    if next_pos not in claimed:
+                        claimed.add(next_pos)
+                        out.add((ant, next_pos))
+                        continue
+                row, col = ant
+                nlist = valid_nbr(row, col, self.walls)
+                valid_moves = [n for n in nlist if n not in claimed]
+                if valid_moves:
+                    next_pos = random.choice(valid_moves)
+                    claimed.add(next_pos)
+                    out.add((ant, next_pos))
+                else:
+                    claimed.add(ant)
+            return out
         
         #set friendly bsae as claimed so that new ants are forced to move out
         claimed = set(fhills)
